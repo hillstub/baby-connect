@@ -29,6 +29,22 @@ class Request {
     return this.rawPost(`/CmdI?${qs}`, data);
   }
 
+  // POST /CmdI?cmd=UserInfo&lg=en&v=2&withDisable=true&pdt=170311 HTTP/1.1
+  getStatusList(user, kid, time) {
+    const dateStr = moment(time).format('YYMMDD');
+    const timeStr = moment(time).format('HHmm');
+    const data = querystring.stringify({
+      pdt: dateStr,
+      Kid: kid,
+      fmt: 'long'
+      // tsn: 0000000000000000 TODO: last tsn received from previous response
+    });
+    const qs = querystring.stringify({
+      cmd: 'StatusList',
+      lg: LANGUAGE,
+    });
+    return this.rawPost(`/CmdListW?${qs}`, data);
+  }
   // POST /CmdPostI?cmd=StatusMPost&lg=en HTTP/1.1
   // ptm=1622 // time, HHMM
   // &pdt=170311 // date, YYMMDD
@@ -40,28 +56,33 @@ class Request {
   //   "e":"3/11/2017 16:15","Ptm":0
   // }]
   // &waccount2=1
-  saveStatus(user, kid, category, text, time) {
+  saveStatus(user, kid, category, text, time, time2) {
     const dateStr = moment(time).format('YYMMDD');
     const timeStr = moment(time).format('HHmm');
+
     const data = querystring.stringify({
-      pdt: dateStr,
-      ptm: timeStr,
+      pdt: moment.max(time, time2).format('YYMMDD'),
+      ptm: moment.max(time, time2).format('HHmm'),
       Kid: kid,
       // tsn: 0000000000000000 TODO: last tsn received from previous response
       l: JSON.stringify([{
-        Pdt: dateStr,
-        Ptm: 0,
-        Utm: timeStr,
+        Pdt: moment.min(time, time2).format('YYMMDD'), 
+        Ptm: moment.max(time, time2).format('HHmm'),
+        Utm: moment.min(time, time2).format('HHmm'),
         Id: 0,
         Cat: category,
         By: user,
         Txt: text,
         // lId: 0, TODO: local id? example: 220580527267
         Kid: kid,
-        e: moment(time).format('M/D/YYYY H:m')
+        isst: true,
+        d: moment.duration(time2.diff(time)).asMinutes(),
+
+        e: moment.max(time,time2).format('M/D/YYYY H:m')
       }]),
       waccount2: 1 // what is this?
     });
+    console.log(data);
     const qs = querystring.stringify({
       cmd: 'StatusMPost',
       lg: LANGUAGE,

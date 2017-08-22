@@ -1,5 +1,6 @@
 // Copyright (c) 2017 Marshall Roch <marshall@mroch.com>
 // All rights reserved.
+const moment = require('moment');
 
 "use strict";
 
@@ -25,11 +26,33 @@ class Kid {
   }
 
   stopSleeping(time) {
-    return this.saveStatus(
+    this.getStatusList().then((status) =>{
+      if(status.summary.isSleeping){
+        //8/20/2017 16:24
+        console.log("is sleeping");
+        var beginTime = moment(status.summary.timeOfLastSleeping, "MM/DD/YYYY HH:mm");
+
+        var endTime = moment(time).seconds(0).milliseconds(0);
+        var duration = moment.duration(endTime.diff(beginTime)).asMinutes();
+        var minuteDiff = endTime.diff(beginTime,'minutes');
+        var hourDuration = Math.floor(minuteDiff/60);
+        var minuteDuration = minuteDiff % 60;
+        console.log(duration);
+        return this.saveStatus(
+          Kid.Category.SLEEP,
+          `${this.name} slept (`+hourDuration+'h and '+minuteDuration+'min)',
+          beginTime,
+          endTime
+        );
+      } 
+    });
+    
+    return true;
+ /*   return this.saveStatus(
       Kid.Category.SLEEP_STOP,
       `${this.name} stopped sleeping`,
       time
-    );
+    );*/
   }
 
   dirtyDiaper(time, size) {
@@ -67,13 +90,22 @@ class Kid {
     );
   }
 
-  saveStatus(category, text, time) {
+  getStatusList(){
+    return this._request.getStatusList(
+      this._parentID,
+      this._id,
+      new Date()
+    );
+  }
+
+  saveStatus(category, text, time, object) {
     return this._request.saveStatus(
       this._parentID,
       this._id,
       category,
       text,
-      time
+      time,
+      object
     ).then(() => true);
   }
 }
