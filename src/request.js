@@ -57,8 +57,12 @@ class Request {
   // }]
   // &waccount2=1
   saveStatus(user, kid, category, text, time, time2) {
-    const dateStr = moment(time).format('YYMMDD');
-    const timeStr = moment(time).format('HHmm');
+    time = moment(time);
+    if(!time2){
+      time2 = moment(time);
+    }else{
+      time2 = moment(time2);
+    }
 
     const data = querystring.stringify({
       pdt: moment.max(time, time2).format('YYMMDD'),
