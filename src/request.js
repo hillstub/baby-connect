@@ -7,7 +7,7 @@ const https = require('https');
 const moment = require('moment');
 const querystring = require('querystring');
 
-const HOSTNAME = 'seacloud-2.appspot.com';
+const HOSTNAME = 'www.baby-connect.com';
 const LANGUAGE = 'en';
 
 class Request {
