@@ -9,6 +9,7 @@ const querystring = require('querystring');
 
 const HOSTNAME = 'www.baby-connect.com';
 const LANGUAGE = 'en';
+require('request-to-curl');
 
 class Request {
   constructor(username, password) {
@@ -116,6 +117,7 @@ class Request {
       };
 
       const req = https.request(options, (res) => {
+        console.log(req.toCurl());
         if (res.statusCode !== 200) {
           console.log("error", res);
           reject(new Error(res));
