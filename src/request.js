@@ -117,6 +117,7 @@ class Request {
 
       const req = https.request(options, (res) => {
         if (res.statusCode !== 200) {
+          console.log("error", res);
           reject(new Error(res));
           return;
         }
@@ -127,11 +128,13 @@ class Request {
           body.push(chunk);
         });
         res.on('end', () => {
+          console.log(body);
           resolve(JSON.parse(body.join('')));
         });
       });
 
       req.on('error', (e) => {
+        console.log('error',e)
         reject(e);
       });
 
