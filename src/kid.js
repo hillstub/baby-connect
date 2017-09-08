@@ -17,12 +17,43 @@ class Kid {
   get id() { return this._id; }
   get gender() { return this._gender; }
 
+  saveNursing(startTime, leftSideInMin, rightSideInMin, lastSide){
+    leftSideInMin = Math.round(leftSideInMin);
+    rightSideInMin = Math.round(rightSideInMin);
+    var sumInMin = Math.round(leftSideInMin+rightSideInMin);
+    var descStr;
+    if(lastSide == 1){ // last side is left
+      descStr = `${rightSideInMin}min right, ${leftSideInMin}min left`;
+    }else {
+      descStr = `${leftSideInMin}min left, ${rightSideInMin}min right`;  
+    }
+    var data = {l:[{
+      Utm: startTime,
+      Pdt: startTime,
+      p: lastSide+";"+leftSideInMin+";"+rightSideInMin,
+      d: sumInMin,
+      Txt: `${this.name} nursed (${descStr})`,
+      Cat: 350
+    }]};
+
+    return this._request.saveStatusNew(
+      this._parentID,
+      this._id,
+      new Date(),
+      data
+    ).then(() => true);    
+  }
+
   startSleeping(time) {
-    return this.saveStatus(
-      Kid.Category.SLEEP_START,
-      `${this.name} started sleeping`,
-      time
-    );
+    this.getStatusList().then((status) =>{
+      if(!status.summary.isSleeping){    
+        return this.saveStatus(
+          Kid.Category.SLEEP_START,
+          `${this.name} started sleeping`,
+          time
+        );
+      }
+    });
   }
 
   stopSleeping(time) {

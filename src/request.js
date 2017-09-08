@@ -7,9 +7,13 @@ const https = require('https');
 const moment = require('moment');
 const querystring = require('querystring');
 
+
 const HOSTNAME = 'www.baby-connect.com';
 const LANGUAGE = 'en';
+
 require('request-to-curl');
+
+var merge = require('deepmerge');
 
 class Request {
   constructor(username, password) {
@@ -95,6 +99,54 @@ class Request {
     return this.rawPost(`/CmdPostI?${qs}`, data);
   }
 
+  //***
+  // data should have following format:
+  // {l: [{
+  //  Cat: category,
+  //  Txt: text,
+  //  e: 
+  // }]}
+  saveStatusNew(user, kid, datetime, data) {
+    console.log("saveStatusNew", data);
+    if(!data){
+      var data = {}
+    }
+    var data = merge({
+      pdt: datetime,
+      ptm: datetime,
+      Kid: kid,
+      // tsn: 0000000000000000 TODO: last tsn received from previous response
+      l: [{
+        Pdt: datetime,
+        Ptm: datetime,
+        Utm: datetime,
+        Id: 0,
+        By: user,
+        // lId: 0, TODO: local id? example: 220580527267
+        Kid: kid,
+        e: datetime
+      }],
+      waccount2: 1 // what is this?
+    }, data);
+
+    data['pdt'] = moment(data['pdt']).format('YYMMDD');
+    data['ptm'] = moment(data['ptm']).format('HHmm');
+    data['l'][0]['Pdt'] = moment(data['l'][0]['Pdt']).format('YYMMDD');
+    data['l'][0]['Ptm'] = moment(data['l'][0]['Ptm']).format('HHmm');
+    data['l'][0]['Utm'] = moment(data['l'][0]['Utm']).format('HHmm');
+    data['l'][0]['e'] = moment(data['l'][0]['e']).format('M/D/YYYY H:mm');
+    console.log(data);
+    data['l'] = JSON.stringify(data['l']);
+    data = querystring.stringify(data);
+
+
+    const qs = querystring.stringify({
+      cmd: 'StatusMPost',
+      lg: LANGUAGE,
+    });
+    return this.rawPost(`/CmdPostI?${qs}`, data);
+  }  
+
   rawPost(path, data) {
     return new Promise((resolve, reject) => {
       const dataLength = Buffer.byteLength(data);
@@ -117,7 +169,7 @@ class Request {
       };
 
       const req = https.request(options, (res) => {
-        console.log(req.toCurl());
+        console.log("curl",req.toCurl());
         if (res.statusCode !== 200) {
           console.log("error", res);
           reject(new Error(res));
